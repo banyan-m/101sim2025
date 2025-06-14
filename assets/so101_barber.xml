@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<mujoco model="so101_barber">
+  <compiler angle="radian" autolimits="true"/>
+  
+  <default>
+    <default class="so101">
+      <joint frictionloss="0.1" armature="0.005"/>
+      <position kp="50" dampratio="1"/>
+      <default class="visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="collision">
+        <geom group="3"/>
+      </default>
+    </default>
+  </default>
+
+  <asset>
+    <material name="hair" rgba="0.4 0.2 0.1 1"/>
+    <material name="skin" rgba="0.9 0.7 0.6 1"/>
+  </asset>
+
+  <worldbody>
+    <!-- Ground -->
+    <geom name="floor" type="plane" size="2 2 0.1" rgba="0.8 0.8 0.8 1"/>
+    
+    <!-- Customer head with hair -->
+    <body name="customer" pos="0.3 0 0.5">
+      <geom name="head" type="sphere" size="0.1" material="skin"/>
+      <geom name="hair" type="box" size="0.12 0.12 0.08" pos="0 0 0.05" material="hair"/>
+    </body>
+    
+    <!-- Simple robot arm (simplified SO-101) -->
+    <body name="base" pos="0 0 0.1">
+      <geom name="base_geom" type="cylinder" size="0.05 0.05" rgba="0.3 0.3 0.3 1"/>
+      <joint name="base_joint" type="hinge" axis="0 0 1" range="-3.14 3.14"/>
+      
+      <body name="shoulder" pos="0 0 0.1">
+        <geom name="shoulder_geom" type="box" size="0.03 0.03 0.08" rgba="0.5 0.5 0.5 1"/>
+        <joint name="shoulder_joint" type="hinge" axis="0 1 0" range="-1.57 1.57"/>
+        
+        <body name="upper_arm" pos="0 0 0.15">
+          <geom name="upper_arm_geom" type="capsule" size="0.02 0.1" rgba="0.4 0.4 0.4 1"/>
+          <joint name="elbow_joint" type="hinge" axis="0 1 0" range="-2.0 2.0"/>
+          
+          <body name="forearm" pos="0 0 0.2">
+            <geom name="forearm_geom" type="capsule" size="0.015 0.08" rgba="0.4 0.4 0.4 1"/>
+            <joint name="wrist_joint" type="hinge" axis="1 0 0" range="-1.57 1.57"/>
+            
+            <!-- Scissors/clipper end effector -->
+            <body name="end_effector" pos="0 0 0.1">
+              <geom name="clipper" type="box" size="0.02 0.01 0.03" rgba="0.8 0.8 0.8 1"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position name="base_actuator" joint="base_joint" kp="100"/>
+    <position name="shoulder_actuator" joint="shoulder_joint" kp="100"/>
+    <position name="elbow_actuator" joint="elbow_joint" kp="100"/>
+    <position name="wrist_actuator" joint="wrist_joint" kp="100"/>
+  </actuator>
+</mujoco> 
