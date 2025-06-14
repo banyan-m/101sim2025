@@ -19,12 +19,14 @@ def demo(frames=400, record_video=False):
         
         obs, _ = env.reset()
         for i in range(frames):
-            # Smart barber movements
+            # Smart barber movements for 6-DOF SO-101
             action = np.array([
-                0.3 * np.sin(i * 0.05),  # Base rotation
-                0.5,                      # Shoulder up
-                -0.8,                     # Elbow bend
-                0.2 * np.cos(i * 0.03)   # Wrist adjust
+                0.3 * np.sin(i * 0.05),   # Joint 1: Base rotation
+                0.5,                      # Joint 2: Shoulder
+                -0.8,                     # Joint 3: Elbow
+                0.2 * np.cos(i * 0.03),   # Joint 4: Wrist pitch
+                0.1 * np.sin(i * 0.07),   # Joint 5: Wrist roll
+                0.0                       # Joint 6: Gripper
             ])
             
             obs, reward, terminated, truncated, info = env.step(action)
@@ -45,8 +47,8 @@ def demo(frames=400, record_video=False):
         try:
             with mujoco.viewer.launch_passive(env.model, env.data) as viewer:
                 for i in range(frames):
-                    # Random barber movements
-                    action = 0.5 * np.sin(i * 0.01) * np.ones(4)
+                    # Random barber movements for 6-DOF
+                    action = 0.5 * np.sin(i * 0.01) * np.ones(6)
                     env.step(action)
                     
                     viewer.sync()
@@ -57,7 +59,7 @@ def demo(frames=400, record_video=False):
             
             obs, _ = env.reset()
             for i in range(frames):
-                action = 0.5 * np.sin(i * 0.01) * np.ones(4)
+                action = 0.5 * np.sin(i * 0.01) * np.ones(6)
                 obs, reward, terminated, truncated, info = env.step(action)
                 
                 if i % 20 == 0:

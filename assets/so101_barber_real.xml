@@ -1,0 +1,26 @@
+<mujoco model="so101_barber_real">
+
+    <!-- bring in the patched robot; it already sets its own compiler -->
+    <include file="so101_base.xml"/>
+
+    <!-- override ONLY the meshdir so paths resolve correctly -->
+    <compiler meshdir=""/>
+
+    <!-- global sim opts -->
+    <option timestep="0.002" integrator="Euler"/>
+
+    <worldbody>
+        <!-- ⬇ customer head with wig -->
+        <body name="customer" pos="0.40 0 0.50">
+            <geom name="head" type="sphere" size="0.10" rgba="0.94 0.78 0.62 1"/>
+            <geom name="hair" type="box"   size="0.12 0.12 0.08"
+                  pos="0 0 0.05"  rgba="0.30 0.19 0.07 1" group="3"/>
+        </body>
+        <!-- nothing else needed: robot came in via include -->
+    </worldbody>
+
+    <sensor>
+        <!-- touch on the *site* we just added -->
+        <touch name="cut_hair" site="blade"/>
+    </sensor>
+</mujoco> 

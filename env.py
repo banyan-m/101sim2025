@@ -8,18 +8,30 @@ class BarberEnv(gym.Env):
     
     def __init__(self, render_mode=None):
         self.render_mode = render_mode
-        self.model = mujoco.MjModel.from_xml_path("assets/so101_barber.xml")
+        
+        # 3.1 New XML path
+        XML_PATH = "assets/so101_barber_real.xml"
+        self.model = mujoco.MjModel.from_xml_path(XML_PATH)
         self.data = mujoco.MjData(self.model)
         
         # Find hair geometry ID for hiding
         self.hair_gid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "hair")
         
-        # Action space: 4 joint motors
-        self.action_space = spaces.Box(-1, 1, (4,), dtype=np.float32)
+        # 3.2 Joint list & action space (SO-101 uses joint names "1"‥"6")
+        JOINTS = ["1", "2", "3", "4", "5", "6"]
+        self.JID = [self.model.joint(n).id for n in JOINTS]
+        self.action_space = spaces.Box(-1.0, 1.0, shape=(6,), dtype=np.float32)
+        
+        # 3.3 Action → target mapping
+        self.low = self.model.jnt_range[self.JID, 0]
+        self.high = self.model.jnt_range[self.JID, 1]
         
         # Observation space: joint positions + velocities + sensor data
         obs_dim = len(self.data.qpos) + len(self.data.qvel) + len(self.data.sensordata)
         self.observation_space = spaces.Box(-np.inf, np.inf, (obs_dim,), dtype=np.float32)
+        
+        # 3.4 Sensor index
+        self.CUT_ADR = self.model.sensor("cut_hair").adr
         
         # Setup rendering if needed
         if self.render_mode == "rgb_array":
@@ -35,16 +47,16 @@ class BarberEnv(gym.Env):
         return self._get_obs(), {}
     
     def step(self, action):
-        # Apply actions to motors (scale to reasonable torque range)
-        max_torque = 1.0  # Reduced from 2.0 for stability
-        self.data.ctrl[:] = action * max_torque
+        # 3.3 Control mapping: scale [-1,1] → joint range
+        target = self.low + 0.5 * (action + 1.0) * (self.high - self.low)
+        self.data.ctrl[:] = target  # position actuators already exist
         
         # Step simulation
         mujoco.mj_step(self.model, self.data)
         
-        # Check if clipper touches hair
+        # Check if blade touches hair
         reward = 0.0
-        if len(self.data.sensordata) > 0 and self.data.sensordata[0] > 0:
+        if self.data.sensordata[self.CUT_ADR] > 0:
             # Hide hair when cut
             self.model.geom_rgba[self.hair_gid, 3] = 0.0  # Make hair invisible
             reward = 1.0  # Reward for successful cut
@@ -52,7 +64,7 @@ class BarberEnv(gym.Env):
         obs = self._get_obs()
         terminated = False
         truncated = False
-        info = {"hair_cut": self.data.sensordata[0] > 0 if len(self.data.sensordata) > 0 else False}
+        info = {"hair_cut": self.data.sensordata[self.CUT_ADR] > 0}
         
         return obs, reward, terminated, truncated, info
     
