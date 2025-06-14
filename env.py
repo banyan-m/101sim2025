@@ -1,23 +1,22 @@
-import gymnasium as gym
-from gymnasium import spaces
+import mujoco
 import numpy as np
 
-class BarberEnv(gym.Env):
-    """Custom Environment that follows gym interface"""
-    
+class BarberEnv:
     def __init__(self):
-        super(BarberEnv, self).__init__()
-        # Define action and observation space
-        # They must be gym.spaces objects
+        self.model = mujoco.MjModel.from_xml_path("assets/so101_barber.xml")
+        self.data = mujoco.MjData(self.model)
         
+    def reset(self):
+        mujoco.mj_resetData(self.model, self.data)
+        return self._get_obs()
+    
     def step(self, action):
-        # Execute one time step within the environment
-        pass
-        
-    def reset(self, seed=None):
-        # Reset the state of the environment to an initial state
-        pass
-        
+        self.data.ctrl[:] = action
+        mujoco.mj_step(self.model, self.data)
+        return self._get_obs(), 0.0, False, {}
+    
+    def _get_obs(self):
+        return np.concatenate([self.data.qpos, self.data.qvel])
+    
     def render(self):
-        # Render the environment to the screen
-        pass 
+        pass  # Rendering handled by viewer 

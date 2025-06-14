@@ -1,19 +1,25 @@
-import gymnasium as gym
-from stable_baselines3 import PPO
+import mujoco
+import mujoco.viewer
 from env import BarberEnv
+import numpy as np
+import time
 
-def record_demo(model_path, output_path, num_episodes=1):
-    # Load the trained agent
-    model = PPO.load(model_path)
+def demo():
     env = BarberEnv()
     
-    for episode in range(num_episodes):
-        obs, _ = env.reset()
-        done = False
-        while not done:
-            action, _ = model.predict(obs)
-            obs, _, done, _, _ = env.step(action)
-            env.render()
+    print("Starting barbershop demo...")
+    print("The robot will perform random movements.")
+    
+    with mujoco.viewer.launch_passive(env.model, env.data) as viewer:
+        for i in range(1000):
+            # Random barber movements
+            action = 0.5 * np.sin(i * 0.01) * np.ones(4)
+            env.step(action)
+            
+            viewer.sync()
+            time.sleep(0.01)
+    
+    print("Demo complete!")
 
 if __name__ == "__main__":
-    record_demo("barber_ppo", "demo.mp4") 
+    demo() 
