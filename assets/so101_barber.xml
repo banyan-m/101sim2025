@@ -2,10 +2,12 @@
 <mujoco model="so101_barber">
   <compiler angle="radian" autolimits="true"/>
   
+  <option timestep="0.001" integrator="RK4"/>
+  
   <default>
     <default class="so101">
-      <joint frictionloss="0.1" armature="0.005"/>
-      <position kp="50" dampratio="1"/>
+      <joint frictionloss="0.1" armature="0.005" damping="1"/>
+      <position kp="10" dampratio="1"/>
       <default class="visual">
         <geom type="mesh" contype="0" conaffinity="0" group="2"/>
       </default>
@@ -50,6 +52,7 @@
             <!-- Scissors/clipper end effector -->
             <body name="end_effector" pos="0 0 0.1">
               <geom name="clipper" type="box" size="0.02 0.01 0.03" rgba="0.8 0.8 0.8 1"/>
+              <site name="blade" pos="0 0 0.03" size="0.001"/>
             </body>
           </body>
         </body>
@@ -57,10 +60,14 @@
     </body>
   </worldbody>
 
+  <sensor>
+    <touch name="cut_hair" site="blade"/>
+  </sensor>
+
   <actuator>
-    <position name="base_actuator" joint="base_joint" kp="100"/>
-    <position name="shoulder_actuator" joint="shoulder_joint" kp="100"/>
-    <position name="elbow_actuator" joint="elbow_joint" kp="100"/>
-    <position name="wrist_actuator" joint="wrist_joint" kp="100"/>
+    <position name="base_actuator" joint="base_joint" kp="10"/>
+    <position name="shoulder_actuator" joint="shoulder_joint" kp="10"/>
+    <position name="elbow_actuator" joint="elbow_joint" kp="10"/>
+    <position name="wrist_actuator" joint="wrist_joint" kp="10"/>
   </actuator>
 </mujoco> 
